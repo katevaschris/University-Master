@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Ιστοσελίδα Υπολογισμών</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      background-color: #e0e0e0;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #clearBtn {
+      background-color: #c62828;
+    }
+
+    .error {
+      color: red;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    .results {
+      margin-top: 20px;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .line-separator {
+      border-top: 2px solid black;
+      margin: 20px 0;
+    }
+
+  </style>
+</head>
+<body>
+<h1>Ιστοσελίδα Υπολογισμών</h1>
+<div class="container">
+  <label for="equationCount">Πόσες εξισώσεις (έως 5):</label>
+  <input type="number" id="equationCount" placeholder="έως 5" min="1" max="5">
+
+  <label for="digitCount">Πόσα ψηφία θα έχουν οι αριθμοί:</label>
+  <select id="digitCount">
+    <option value="1">1 ψηφίο</option>
+    <option value="2">2 ψηφία</option>
+    <option value="3">3 ψηφία</option>
+  </select>
+
+  <label for="numberType">Τύπος αριθμών:</label>
+  <select id="numberType">
+    <option value="all">Όλοι</option>
+    <option value="even">Μόνο Ζυγοί</option>
+    <option value="odd">Μόνο Μονoί</option>
+  </select>
+
+  <label>Ποιες πράξεις να περιλαμβάνουν:</label>
+  <div class="checkbox-group">
+    <div class="checkbox-row"><input type="checkbox" id="add"> <label for="add">Πρόσθεση</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="subtract"> <label for="subtract">Αφαίρεση</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="multiply"> <label for="multiply">Πολλαπλασιασμός</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="divide"> <label for="divide">Διαίρεση</label></div>
+    <div class="checkbox-row"><input type="checkbox" id="lcm"> <label for="lcm">Να υπολογίσω το ΕΚΠ</label></div>
+  </div>
+
+  <label for="lcmCount">Δώσε το πλήθος των αριθμών για το ΕΚΠ:</label>
+  <input type="number" id="lcmCount" placeholder="2 έως 5" min="2" max="5">
+
+  <div class="buttons">
+    <button onclick="calculate()">Υπολογισμός</button>
+    <button id="clearBtn" onclick="clearFields()">Καθαρισμός</button>
+  </div>
+
+  <div class="line-separator">
+  </div>
+
+  <div id="errors" class="error"></div>
+  <div id="results" class="results"></div>
+</div>
+
+<script>
+  function randomNumber(digits, type) {
+    let min = Math.pow(10, digits - 1);
+    let max = Math.pow(10, digits) - 1;
+    let num;
+    do {
+      num = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while ((type === 'even' && num % 2 !== 0) || (type === 'odd' && num % 2 === 0));
+    return num;
+  }
+
+  function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+  }
+
+  function lcmOfTwo(a, b) {
+    return (a * b) / gcd(a, b);
+  }
+
+  function lcmOfArray(arr) {
+    return arr.reduce((a, b) => lcmOfTwo(a, b));
+  }
+
+  function calculate() {
+    const resultsDiv = document.getElementById("results");
+    const errorDiv = document.getElementById("errors");
+    resultsDiv.innerHTML = "";
+    errorDiv.innerHTML = "";
+
+    let errors = [];
+
+    const count = parseInt(document.getElementById("equationCount").value);
+    const digits = parseInt(document.getElementById("digitCount").value);
+    const type = document.getElementById("numberType").value;
+    const doAdd = document.getElementById("add").checked;
+    const doSub = document.getElementById("subtract").checked;
+    const doMul = document.getElementById("multiply").checked;
+    const doDiv = document.getElementById("divide").checked;
+    const doLCM = document.getElementById("lcm").checked;
+    const lcmCount = parseInt(document.getElementById("lcmCount").value);
+
+    if (isNaN(count) || count < 1 || count > 5) errors.push("Δώσε σωστό αριθμό εξισώσεων (1 έως 5).");
+    if (!doAdd && !doSub && !doMul && !doDiv && !doLCM) errors.push("Δεν επιλέχθηκε καμία πράξη.");
+    if (doLCM && (isNaN(lcmCount) || lcmCount < 2 || lcmCount > 5)) errors.push("Το πλήθος για το ΕΚΠ πρέπει να είναι 2 έως 5.");
+
+    if (errors.length > 0) {
+      alert(errors.join("\n"));
+      errorDiv.innerHTML = errors.map(e => `<div>${e}</div>`).join("");
+      return;
+    }
+
+    let html = "<h3>Υπολογισμός</h3>";
+
+    for (let i = 0; i < count; i++) {
+      let a = randomNumber(digits, type);
+      let b = randomNumber(digits, type);
+
+      if (doAdd) html += `<div>${a} + ${b} = ${a + b}</div>`;
+      if (doSub) html += `<div>${a} - ${b} = ${a - b}</div>`;
+      if (doMul) html += `<div>${a} × ${b} = ${a * b}</div>`;
+      if (doDiv) html += `<div>${a} ÷ ${b} = ${(a / b).toFixed(2)}</div>`;
+    }
+
+    if (doLCM) {
+      let nums = [];
+      for (let i = 0; i < lcmCount; i++) {
+        nums.push(randomNumber(digits, type));
+      }
+      html += `<div>ΕΚΠ(${nums.join(", ")}) = ${lcmOfArray(nums)}</div>`;
+    }
+
+    resultsDiv.innerHTML = html;
+  }
+
+  function clearFields() {
+    document.getElementById("equationCount").value = "";
+    document.getElementById("lcmCount").value = "";
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+    document.getElementById("errors").innerHTML = "";
+    document.getElementById("results").innerHTML = "";
+  }
+</script>
+</body>
+</html>
