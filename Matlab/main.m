@@ -23,9 +23,15 @@ function main
     disp('--- Nilakantha ---')
     [pi_nil, d_nil] = nilakantha(100);
     fprintf('Όροι: 100, Προσέγγιση: %.15f, Σωστά δεκαδικά: %d\n', pi_nil, d_nil);
+
+    disp('--- Newton Series ---')
+    [pi_newton, d_newton] = newton_pi(50);
+    fprintf('Όροι: 22, Προσέγγιση: %.15f, Σωστά δεκαδικά: %d\n', pi_newton, d_newton);
+
+    plot_convergence();
+    input('\nΠάτησε Enter για έξοδο...');
 end
 
-% Οι υπόλοιπες συναρτήσεις ακολουθούν ως "local functions"
 function [pi_approx, digits] = gregory_leibniz(N)
     pi_approx = 0;
     for k = 0:N-1
@@ -90,4 +96,57 @@ function [pi_approx, digits] = nilakantha(N)
         end
     end
     digits = floor(-log10(abs(pi_approx - pi)));
+end
+
+function [pi_approx, digits] = newton_pi(N)
+    x = 1/4;
+    sum_val = 0;
+    for k = 0:N-1
+        switch k
+            case 0
+                coeff = 2/3;
+            case 1
+                coeff = -1/5;
+            case 2
+                coeff = -2/7;
+            case 3
+                coeff = -1/16 * 2/9;
+            case 4
+                coeff = -5/128 * 2/11;
+            case 5
+                coeff = -7/256 * 2/13;
+            case 6
+                coeff = -21/1024 * 2/15;
+            case 7
+                coeff = -33/2048 * 2/17;
+            case 8
+                coeff = -429/32768 * 2/19;
+            otherwise
+                coeff = 0;
+        end
+        sum_val = sum_val + coeff * x^(k + 1.5);
+    end
+    pi_approx = 3*sqrt(3)/4 + 24 * sum_val;
+    digits = floor(-log10(abs(pi_approx - pi)));
+end
+
+
+
+function plot_convergence()
+    max_terms = 50;
+    methods = {@gregory_leibniz, @euler_pi, @newton_pi, @ramanujan_pi, @product_series, @sqrt3_series, @nilakantha};
+    names = {'Gregory-Leibniz', 'Euler', 'Newton', 'Ramanujan', 'Product', 'Sqrt3', 'Nilakantha'};
+    
+    figure;
+    hold on;
+    for i = 1:length(methods)
+        terms = 1:max_terms;
+        digits = arrayfun(@(n) methods{i}(n), terms);
+        plot(terms, digits, 'LineWidth', 1.5);
+    end
+    legend(names, 'Location', 'northwest');
+    xlabel('Αριθμός Όρων');
+    ylabel('Σωστά Δεκαδικά Ψηφία');
+    title('Σύγκριση Σύγκλισης Σειρών για τον Υπολογισμό του π');
+    grid on;
 end
